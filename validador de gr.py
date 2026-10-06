@@ -1,278 +1,509 @@
 import streamlit as st
 
-# Configuracao da pagina
+# Configuração da Página
 st.set_page_config(
-    page_title="Validador de Apolice - TLOG",
-    page_icon="🛡",
-    layout="centered"
+    page_title="Validador de LMG e GR - Apólice Sompo",
+    page_icon="🛡️",
+    layout="wide",
 )
 
-# Tabela completa e revisada de Limites de Garantia (LMG) por Produto / Condicao Especial
-tabela_regras = {
-    "Aco e ferro em geral": 150000.00,
-    "GLUCOSE / MALTOSE; CHOCOLATE LÍQUIDO OU EM MASSA; ÁCIDO CÍTRICO; GELATINA; AMIDOS": 450000.00,
-    "Álcool etílico e para fins medicinais / farmacêuticos": 150000.00,
-    "Aluminio em geral": 150000.00,
-    "Algodão em geral": 1000000.00,
-    "Artigos de higiene e limpeza, cosmeticos e perfumaria": 150000.00,
-    "Artigos esportivos": 150000.00,
-    "Autopecas em geral, inclusive para motocicleta": 200000.00,
-    "Balas, chocolates, chicletes e doces em geral": 150000.00,
-    "Baterias automotivas": 150000.00,
-    "Bebidas em geral, exceto cervejas e refrigerantes": 150000.00,
-    "Bobinas de papel": 150000.00,
-    "Brinquedos e bicicletas, partes, pecas e acessorios": 150000.00,
-    "Café (qualquer tipo)": 4000000.00,
-    "Café de qualquer tipo (Geral)": 150000.00,
-    "Calçados (tênis, sapatos, chinelos, sandálias), solados, palmilhas e correias": 150000.00,
-    "Cartuchos para impressoras e copiadoras": 150000.00,
-    "Câmeras e Artigos fotograficos em geral": 150000.00,
-    "Carne congelada, in natura, charque, pescados e leite (inclusive em pó/condensado)": 900000.00,
-    "Carnes in natura e Charque de origem animal": 150000.00,
-    "Carne de frango congelada": 170000.00,
-    "Cassiterita": 150000.00,
-    "CD's, DVD's, LD's e Blue Ray": 150000.00,
-    "Computadores em Geral, Notebooks, Desktops, Tablets, Teclados, Monitores, CPU, Processadores, Memórias, Kit Multimídia, Jogos e Semelhantes, Demais Periféricos e Demais Partes e Peças destes produtos": 150000.00,
-    "Cervejas e Refrigerantes": 150000.00,
-    "Cobre de qualquer tipo": 150000.00,
-    "Confeccoes, tecidos, fios têxteis e roupas prontas": 150000.00,
-    "Defensivos agrícolas - Embarcador CHDS DO BRASIL": 2500000.00,
-    "Eletrônicos em Geral e Eletrodomésticos": 200000.00,
-    "Embarcador Hexion Química do Brasil": 160000.00,
-    "Embarcador CNH (somente pra partes e peças de máquinas e implementos agrícolas)": 150000.00,
-    "Embarques de mercadorias em Pick-up abertas": 100000.00,
-    "Empilhadeiras de qualquer tipo": 150000.00,
-    "Equipamentos e aparelhos de ginastica": 150000.00,
-    "Equipamento médico hospitalar": 150000.00,
-    "Fechaduras, ferragens em geral e": 150000.00,
-    "Farinha de peixe": 450000.00,
-    "Ferramentas manuais ou elétricas (por exemplo, furadeiras, serras elétricas, lixadeiras, etc)": 200000.00,
-    "Fertilizantes e defensivos agrícolas": 150000.00,
-    "Frango Congelado (Operação GT Foods - Percurso Paranaguá x Terra Boa/Maringá/Paranavaí/Cambé/Apucarana/Paraíso do Norte)": 550000.00,
-    "Frangos Congelados em geral": 450000.00,
-    "Frango e Porco Congelados transportados em containers": 750000.00,
-    "Fraldas descartáveis": 150000.00,
-    "Fibra óptica": 150000.00,
-    "Grãos, farinhas, farelos e sementes em geral (exceto café qualquer tipo)": 150000.00,
-    "Lâmpadas, inclusive reatores, luminárias e periféricos": 150000.00,
-    "Leite de qualquer tipo": 150000.00,
-    "Máquinas e Equipamentos Agrícolas, Colheitadeiras, Pá Carregadeira": 1500000.00,
-    "Máquinas e Equipamentos com dimensões excepcionais/pesados": 500000.00,
-    "Materiais elétricos e montagem de rede de distribuição, painéis solares /fotovoltaicos": 150000.00,
-    "Materiais elétricos, inclusive ferramentas, fios e cabos em geral (exceto cobre)": 150000.00,
-    "Materiais de escritório e escolar livros e revistas em geral": 150000.00,
-    "Metal Group Participacoes Ltda (Origem/Destino Brasil, exceto RJ)": 2500000.00,
-    "Óleos lubrificantes": 150000.00,
-    "Óleos Comestíveis, Óleos Vegetais, (Inclusive Azeites), Óleos de Origem Animal, Óleos Minerais ou Óleos Sintéticos, Degomados ou Não Degomados do embarcador AAK DO BRASIL INDUSTRIA E COMERCIO DE OLEOS VEGETAIS LTDA": 200000.00,
-    "Oleos Comestiveis, Oleos Vegetais, Azeites": 200000.00,
-    "Operação Embarcador RENAULT DO BRASIL, VOLVO e SCANIA": 10000000.00,
-    "Papel e celulose em geral (Exceto bobina de papel)": 150000.00,
-    "Partes e peças de máquinas e implementos agrícolas - Embarcador CNH": 2500000.00,
-    "Pilhas e baterias (exceto aparelhos de telefones celulares)": 150000.00,
-    "Pisos Cerâmicos, Vasilhames e Garrafas de Vidro, Vidros de Qualquer Tipo": 200000.00,
-    "Pneus e câmaras de ar": 200000.00,
-    "Pneus e câmaras de ar e suas matérias primas": 1000000.00,
-    "Produtos alimenticios em geral": 170000.00,
-    "Produtos farmaceuticos (exceto medicamentos)": 150000.00,
-    "Produtos ópticos em geral": 150000.00,
-    "Produtos quimicos em geral (exceto de uso veterinário)": 150000.00,
-    "Produtos siderúrgicos, latão e folha de flandres": 150000.00,
-    "Polímeros em geral": 150000.00,
-    "Racks para transporte de mercadorias": 250000.00,
-    "Rolamentos em geral": 200000.00,
-    "Suco Congelado transportado em containers": 400000.00,
-    "Tintas, vernizes, corantes, pigmentos e similares": 150000.00,
-    "Transformadores/geradores pesados": 200000.00,
-    "Tratores de quaisquer tipos, máquinas e implementos agrícolas": 150000.00,
-    "Zinco": 150000.00,
-    "Bens Gerais / Outros (Limite Máximo Padrão da Apólice)": 6000000.00
+# Título da Aplicação
+st.title("🛡️ Validador de LMG e Gerenciamento de Risco (GR)")
+st.markdown(
+    "Ferramenta profissional de validação baseada nos limites específicos,"
+    " limites máximos por mercadoria e regras da apólice Sompo."
+)
+
+# 1. Dicionário de EMBARCADORES ESPECÍFICOS
+embarcadores_especificos = {
+    "Selecione o Embarcador...": {"lmg_base": 0.00, "lmg_maximo": 0.00},
+    "Operação Embarcador RENAULT DO BRASIL, VOLVO E SCANIA": {
+        "lmg_base": 3000000.00,
+        "lmg_maximo": 10000000.00,
+    },
+    (
+        "Embarcador CNH (somente para partes e peças de máquinas e implementos"
+        " agrícolas)"
+    ): {"lmg_base": 2500000.00, "lmg_maximo": 2500000.00},
+    (
+        "Defensivos agrícolas do Embarcador CHDS DO BRASIL COMERCIO DE INSUMOS"
+        " AGRICOLAS LTDA."
+    ): {"lmg_base": 2500000.00, "lmg_maximo": 2500000.00},
+    (
+        "Embarcador METAL GROUP PARTICIPACOES LTDA (exceto Região Metropolitana"
+        " do RJ)"
+    ): {"lmg_base": 2500000.00, "lmg_maximo": 2500000.00},
+    (
+        "Operação de Frango Congelado do Embarcador GT Foods nos Percursos"
+        " (Paranaguá x Terra Boa/ Maringá/ Paranavaí/ Cambé/ Apucarana/ Paraíso"
+        " do Norte x Paranaguá)"
+    ): {"lmg_base": 550000.00, "lmg_maximo": 550000.00},
+    "Embarcador Hexion Química do Brasil": {
+        "lmg_base": 160000.00,
+        "lmg_maximo": 6000000.00,
+    },
 }
 
-def obter_regras_gerenciamento(valor, lmg_limite):
-    """Retorna as exigências de Gerenciamento de Risco (Regras Gerais)."""
-    if valor <= lmg_limite:
-        return [
-            "Consulta e liberação do motorista, ajudante e veículo."
-        ]
-    elif valor <= 600000.00:
-        return [
-            "Consulta e liberação do motorista, ajudante e veículo.",
-            "Rastreamento / Monitoramento.",
-            "Proibido utilização de equipamento em modo 'sleep'.",
-            "Pernoite deverá ser monitorado a cada 30 minutos."
-        ]
-    elif valor <= 1200000.00:
-        return [
-            "Consulta e liberação do motorista, ajudante e veículo.",
-            "Rastreamento / Monitoramento.",
-            "Um (01) Rastreador Móvel (Isca) OU Rastreador Redundante RF OU Escolta Armada OU Imobilizador Inteligente.",
-            "Proibido utilização de equipamento em modo 'sleep'.",
-            "Pernoite deverá ser monitorado a cada 30 minutos."
-        ]
-    elif valor <= 2000000.00:
-        return [
-            "Consulta e liberação do motorista, ajudante e veículo.",
-            "Rastreamento / Monitoramento.",
-            "Rastreador Redundante RF OU Escolta Armada OU Imobilizador Inteligente.",
-            "Proibido Rodagem entre 22h às 05h.",
-            "Proibido utilização de equipamento em modo 'sleep'.",
-            "Pernoite deverá ser monitorado a cada 30 minutos."
-        ]
-    elif valor <= 2500000.00:
-        return [
-            "Consulta e liberação do motorista, ajudante e veículo.",
-            "Rastreamento / Monitoramento.",
-            "Um (01) Rastreador Móvel (Isca).",
-            "Rastreador Redundante RF OU Imobilizador Inteligente.",
-            "Trava de 5° Roda ou Bloqueador de carreta.",
-            "Proibido Rodagem entre 22h às 05h.",
-            "Proibido utilização de equipamento em modo 'sleep'.",
-            "Pernoite deverá ser monitorado a cada 30 minutos."
-        ]
-    elif valor <= 4000000.00:
-        return [
-            "Consulta e liberação do motorista, ajudante e veículo.",
-            "Rastreamento / Monitoramento.",
-            "Um (01) Rastreador Móvel (Isca) E/OU Rastreador Redundante RF OU Imobilizador Inteligente.",
-            "Escolta Armada OU POS adicional de 10% caso não tenha sido utilizado Escolta Armada.",
-            "Trava de 5° Roda ou Bloqueador de carreta.",
-            "Proibido Rodagem entre 22h às 05h.",
-            "Proibido utilização de equipamento em modo 'sleep'.",
-            "Pernoite deverá ser monitorado a cada 30 minutos."
-        ]
-    else:
-        return [
-            "⚠️ **Valor acima do limite padrão:** Requer aviso prévio por escrito à Seguradora com antecedência mínima de 3 dias úteis."
-        ]
+# 2. Dicionário COMPLETO de Mercadorias com Limites Fixos da Relação (Pág. 13)
+mercadorias_gerais = {
+    "Selecione a Mercadoria...": {"lmg_base": 0.00, "lmg_maximo": 0.00},
+    "Aço e ferro em geral": {"lmg_base": 150000.00, "lmg_maximo": 6000000.00},
+    (
+        "GLUCOSE / MALTOSE; CHOCOLATE LÍQUIDO OU EM MASSA; ÁCIDO CÍTRICO;"
+        " GELATINA; AMIDOS"
+    ): {"lmg_base": 450000.00, "lmg_maximo": 6000000.00},
+    "Álcool etílico e para fins medicinais / farmacêuticos": {
+        "lmg_base": 150000.00,
+        "lmg_maximo": 6000000.00,
+    },
+    "Alumínio em geral": {"lmg_base": 150000.00, "lmg_maximo": 6000000.00},
+    "Artigos de higiene e limpeza, cosméticos e perfumaria": {
+        "lmg_base": 150000.00,
+        "lmg_maximo": 6000000.00,
+    },
+    "Artigos esportivos": {"lmg_base": 150000.00, "lmg_maximo": 6000000.00},
+    "Autopeças em geral, inclusive para motocicleta": {
+        "lmg_base": 200000.00,
+        "lmg_maximo": 6000000.00,
+    },
+    "Balas, chocolates, chicletes e doces em geral": {
+        "lmg_base": 150000.00,
+        "lmg_maximo": 6000000.00,
+    },
+    "Baterias automotivas": {"lmg_base": 150000.00, "lmg_maximo": 6000000.00},
+    "Bebidas em geral, exceto cervejas e refrigerantes": {
+        "lmg_base": 150000.00,
+        "lmg_maximo": 6000000.00,
+    },
+    "Bobinas de papel": {"lmg_base": 150000.00, "lmg_maximo": 6000000.00},
+    "Brinquedos e bicicletas, partes, peças e acessórios": {
+        "lmg_base": 150000.00,
+        "lmg_maximo": 6000000.00,
+    },
+    "Café de qualquer tipo": {"lmg_base": 150000.00, "lmg_maximo": 4000000.00},
+    (
+        "Calçados (tênis, sapatos, chinelos, sandálias), solados, palmilhas e"
+        " correias"
+    ): {"lmg_base": 150000.00, "lmg_maximo": 6000000.00},
+    "Cartuchos para impressoras e copiadoras": {
+        "lmg_base": 150000.00,
+        "lmg_maximo": 6000000.00,
+    },
+    "Câmeras e Artigos fotográficos em geral": {
+        "lmg_base": 150000.00,
+        "lmg_maximo": 6000000.00,
+    },
+    "Carnes 'in natura' e Charque de qualquer origem animal": {
+        "lmg_base": 150000.00,
+        "lmg_maximo": 6000000.00,
+    },
+    "Carne de frango congelada": {
+        "lmg_base": 170000.00,
+        "lmg_maximo": 6000000.00,
+    },
+    "Cassiterita": {"lmg_base": 150000.00, "lmg_maximo": 6000000.00},
+    "CD´s, DVD´s, LD´s e Blue Ray": {
+        "lmg_base": 150000.00,
+        "lmg_maximo": 6000000.00,
+    },
+    (
+        "Computadores em Geral, Notebooks, Desktops, Tablets, Teclados,"
+        " Monitores, CPU, Processadores, Memórias, Kit Multimídia, Jogos e"
+        " Semelhantes, Demais Periféricos e Demais Peças"
+    ): {"lmg_base": 150000.00, "lmg_maximo": 1000000.00},
+    "Cervejas e Refrigerantes": {
+        "lmg_base": 150000.00,
+        "lmg_maximo": 6000000.00,
+    },
+    "Cobre de qualquer tipo": {"lmg_base": 150000.00, "lmg_maximo": 6000000.00},
+    "Confecções, tecidos, fios têxteis e roupas prontas": {
+        "lmg_base": 150000.00,
+        "lmg_maximo": 6000000.00,
+    },
+    "Eletrônicos em Geral e Eletrodomésticos": {
+        "lmg_base": 200000.00,
+        "lmg_maximo": 1000000.00,
+    },
+    "Embarcador Hexion Química do Brasil": {
+        "lmg_base": 160000.00,
+        "lmg_maximo": 6000000.00,
+    },
+    "Embarcador CNH (partes e peças)": {
+        "lmg_base": 150000.00,
+        "lmg_maximo": 2500000.00,
+    },
+    "Empilhadeiras de qualquer tipo": {
+        "lmg_base": 150000.00,
+        "lmg_maximo": 6000000.00,
+    },
+    "Equipamentos e aparelhos de ginástica": {
+        "lmg_base": 150000.00,
+        "lmg_maximo": 6000000.00,
+    },
+    "Equipamento médico hospitalar": {
+        "lmg_base": 150000.00,
+        "lmg_maximo": 6000000.00,
+    },
+    "Fechaduras, ferragens em geral": {
+        "lmg_base": 150000.00,
+        "lmg_maximo": 6000000.00,
+    },
+    (
+        "Ferramentas manuais ou elétricas (furadeiras, serras, lixadeiras)"
+    ): {"lmg_base": 200000.00, "lmg_maximo": 6000000.00},
+    "Fertilizantes e defensivos agrícolas": {
+        "lmg_base": 150000.00,
+        "lmg_maximo": 6000000.00,
+    },
+    "Fraldas descartáveis": {"lmg_base": 150000.00, "lmg_maximo": 6000000.00},
+    "Fibra óptica": {"lmg_base": 150000.00, "lmg_maximo": 6000000.00},
+    "Grãos, farinhas, farelos e sementes em geral": {
+        "lmg_base": 150000.00,
+        "lmg_maximo": 6000000.00,
+    },
+    "Lâmpadas, inclusive reatores, luminárias e periféricos": {
+        "lmg_base": 150000.00,
+        "lmg_maximo": 6000000.00,
+    },
+    "Leite de qualquer tipo": {"lmg_base": 150000.00, "lmg_maximo": 6000000.00},
+    (
+        "Materiais elétricos e montagem de rede de distribuição, painéis"
+        " solares"
+    ): {"lmg_base": 150000.00, "lmg_maximo": 6000000.00},
+    (
+        "Materiais elétricos, inclusive ferramentas, fios e cabos (exceto cobre)"
+    ): {"lmg_base": 150000.00, "lmg_maximo": 6000000.00},
+    "Materiais de escritório e escolar, livros e revistas": {
+        "lmg_base": 150000.00,
+        "lmg_maximo": 6000000.00,
+    },
+    "Óleos lubrificantes": {"lmg_base": 150000.00, "lmg_maximo": 6000000.00},
+    (
+        "Óleos Comestíveis, Vegetais, Minerais ou Sintéticos (Embarcador AAK)"
+    ): {"lmg_base": 200000.00, "lmg_maximo": 6000000.00},
+    "Papel e celulose em geral (Exceto bobina de papel)": {
+        "lmg_base": 150000.00,
+        "lmg_maximo": 6000000.00,
+    },
+    "Pilhas e baterias (exceto celulares)": {
+        "lmg_base": 150000.00,
+        "lmg_maximo": 6000000.00,
+    },
+    "Pneus e câmaras de ar": {"lmg_base": 200000.00, "lmg_maximo": 6000000.00},
+    "Produtos alimentícios em geral": {
+        "lmg_base": 170000.00,
+        "lmg_maximo": 6000000.00,
+    },
+    "Produtos farmacêuticos (exceto medicamentos)": {
+        "lmg_base": 150000.00,
+        "lmg_maximo": 6000000.00,
+    },
+    "Produtos ópticos em geral, óculos": {
+        "lmg_base": 150000.00,
+        "lmg_maximo": 6000000.00,
+    },
+    "Produtos químicos em geral (exceto uso veterinário)": {
+        "lmg_base": 150000.00,
+        "lmg_maximo": 6000000.00,
+    },
+    "Produtos siderúrgicos, latão e folha de flandres": {
+        "lmg_base": 150000.00,
+        "lmg_maximo": 6000000.00,
+    },
+    "Polímeros em geral": {"lmg_base": 150000.00, "lmg_maximo": 6000000.00},
+    "Rolamentos em geral": {"lmg_base": 200000.00, "lmg_maximo": 6000000.00},
+    "Tintas, vernizes, corantes, pigmentos e similares": {
+        "lmg_base": 150000.00,
+        "lmg_maximo": 6000000.00,
+    },
+    "Transformadores/geradores pesados": {
+        "lmg_base": 200000.00,
+        "lmg_maximo": 6000000.00,
+    },
+    "Tratores de quaisquer tipos, máquinas e implementos agrícolas": {
+        "lmg_base": 150000.00,
+        "lmg_maximo": 6000000.00,
+    },
+    "Zinco": {"lmg_base": 150000.00, "lmg_maximo": 6000000.00},
+    "Algodão em geral": {"lmg_base": 1000000.00, "lmg_maximo": 1000000.00},
+    "Farinha de peixe": {"lmg_base": 450000.00, "lmg_maximo": 450000.00},
+    (
+        "Demais Mercadorias Cobertas (Não listadas acima - Regra Geral)"
+    ): {"lmg_base": 1500000.00, "lmg_maximo": 6000000.00},
+}
 
-def obter_regras_farinha_peixe(valor):
-    """Retorna as exigências específicas de GR para Farinha de Peixe (Exceto RJ)."""
-    if valor <= 200000.00:
-        return [
-            "Consulta e liberação do motorista, ajudante e veículo e motorista Frota ou agregado."
-        ]
-    elif valor <= 450000.00:
-        return [
-            "Consulta e liberação do motorista, ajudante e veículo e motorista Frota ou agregado.",
-            "Rastreamento / Monitoramento."
-        ]
-    else:
-        return [
-            "⚠️ **Valor acima do limite da condição especial:** Requer aviso prévio por escrito à Seguradora com antecedência mínima de 3 dias úteis."
-        ]
 
-def obter_regras_container_pr(valor, lmg_limite):
-    """Retorna as exigências de GR para Container com Origem e Destino no Paraná (PR)."""
-    if valor <= lmg_limite:
-        return [
-            "Consulta e liberação do motorista, ajudante e veículo."
-        ]
-    elif valor <= 600000.00:
-        return [
-            "Consulta e liberação do motorista, ajudante e veículo.",
-            "Rastreamento / Monitoramento.",
-            "Proibido utilização de equipamento em modo 'sleep'.",
-            "Pernoite deverá ser monitorado a cada 30 minutos."
-        ]
-    elif valor <= 1200000.00:
-        return [
-            "Consulta e liberação do motorista, ajudante e veículo.",
-            "Rastreamento / Monitoramento.",
-            "Um (01) Rastreador Móvel (Isca) OU Rastreador Redundante RF OU Escolta Armada OU Imobilizador Inteligente.",
-            "Proibido utilização de equipamento em modo 'sleep'.",
-            "Pernoite deverá ser monitorado a cada 30 minutos."
-        ]
-    elif valor <= 2500000.00:
-        return [
-            "Consulta e liberação do motorista, ajudante e veículo.",
-            "Rastreamento / Monitoramento.",
-            "Um (01) Rastreador Móvel (Isca) OU Rastreador Redundante RF OU Escolta Armada OU Imobilizador Inteligente.",
-            "Rastreador Redundante RF OU Escolta Armada OU Imobilizador Inteligente.",
-            "Proibido rodagem entre 22h e 05h.",
-            "Proibido utilização de equipamento em modo 'sleep'.",
-            "Pernoite deverá ser monitorado a cada 30 minutos."
-        ]
-    elif valor <= 6000000.00:
-        return [
-            "Consulta e liberação do motorista, ajudante e veículo.",
-            "Rastreamento / Monitoramento.",
-            "Um (01) Rastreador Móvel (Isca) OU Rastreador Redundante RF OU Imobilizador Inteligente.",
-            "Rastreador Redundante RF OU Trava Eletrônica.",
-            "Imobilizador Inteligente OU Trava Eletrônica OU Escolta Armada.",
-            "Trava de 5ª Roda OU Bloqueador de carreta OU Cadeado Inteligente OU Trava de porta de container.",
-            "Proibido rodagem entre 22h e 05h.",
-            "Proibido utilização de equipamento em modo 'sleep'.",
-            "Pernoite deverá ser monitorado a cada 30 minutos."
-        ]
-    else:
-        return [
-            "⚠️ **Valor acima de R$ 6.000.000,00:** Requer aviso prévio por escrito à Seguradora com antecedência mínima de 3 dias úteis."
-        ]
+# Função auxiliar para verificar isenção de rota (Paranaguá x Curitiba e Região Metropolitana)
+def verificar_isencao_rota(origem, destino, valor):
+    origem_limpa = origem.upper()
+    destino_limpo = destino.upper()
 
-st.title("🛡 Validador de Regras de Apolice - TLOG")
-st.markdown("Consulte os limites de **LMG e Exigências de Gerenciamento de Risco**.")
-
-with st.form("form_com_regras_pr"):
-    cliente = st.text_input("Cliente (Opcional)", placeholder="Ex: Empresa Exemplo S.A.")
-    
-    col1, col2 = st.columns(2)
-    with col1:
-        cidade_inicio = st.text_input("Cidade de Inicio (Origem)")
-    with col2:
-        destino = st.text_input("Cidade de Destino")
-        
-    container_pr = st.checkbox("Mercadorias em Container com Origem e Destino no Estado do Paraná (PR)")
-        
-    lista_produtos = sorted(list(tabela_regras.keys()))
-
-    produto = st.selectbox(
-        f"Produto / Condição Especial ({len(lista_produtos)} opções):", 
-        options=lista_produtos, 
-        index=0
+    rota_parinova = ("PARANAGUÁ" in origem_limpa or "PARANAGUA" in origem_limpa) and (
+        "CURITIBA" in destino_limpo
+        or "SÃO JOSÉ DOS PINHAIS" in destino_limpo
+        or "PINHAIS" in destino_limpo
+        or "COLOMBO" in destino_limpo
+        or "ARAUCÁRIA" in destino_limpo
+        or "CAMPO LARGO" in destino_limpo
     )
-    
-    valor_mercadoria = st.number_input("Valor da Mercadoria (R$)", min_value=0.0, format="%.2f", step=1000.0)
+    rota_invers = (
+        "CURITIBA" in origem_limpa
+        or "SÃO JOSÉ DOS PINHAIS" in origem_limpa
+        or "PINHAIS" in origem_limpa
+        or "COLOMBO" in origem_limpa
+        or "ARAUCÁRIA" in origem_limpa
+        or "CAMPO LARGO" in origem_limpa
+    ) and ("PARANAGUÁ" in destino_limpo or "PARANAGUA" in destino_limpo)
 
-    submitted = st.form_submit_button("Consultar Apolice e Regras de GR")
+    if (rota_parinova or rota_invers) and valor <= 1500000.00:
+        return True
+    return False
 
-if submitted:
-    if not cidade_inicio or not destino or not produto:
-        st.warning("⚠️ Por favor, preencha as cidades de origem, destino e selecione o produto.")
+
+# Regra Padrão de Gerenciamento de Risco (Conforme Pág. 15 da Apólice)
+def obter_regras_gr_padrao_tabela(valor, lmg_fixo):
+    regras = []
+    connector_avisos = []
+
+    if valor <= lmg_fixo:
+        regras.append("Consulta e liberação do motorista, ajudante e veículo[cite: 18].")
+    elif valor <= 600000.00:
+        regras.extend([
+            "Consulta e liberação do motorista, ajudante e veículo[cite: 18].",
+            "Rastreamento / Monitoramento[cite: 18].",
+        ])
+        connector_avisos.extend([
+            "Proibido utilização de equipamento em modo “sleep”[cite: 18].",
+            "Pernoite deverá ser monitorado a cada 30 minutos[cite: 18].",
+        ])
+    elif valor <= 1200000.00:
+        regras.extend([
+            "Consulta e liberação do motorista, ajudante e veículo[cite: 18].",
+            "Rastreamento / Monitoramento[cite: 18].",
+            (
+                "Um (01) Rastreador Móvel (Isca) OU Rastreador Redundante RF OU"
+                " Escolta Armada OU Imobilizador Inteligente[cite: 18]."
+            ),
+        ])
+        connector_avisos.extend([
+            "Proibido utilização de equipamento em modo “sleep”[cite: 18].",
+            "Pernoite deverá ser monitorado a cada 30 minutos[cite: 18].",
+        ])
+    elif valor <= 2000000.00:
+        regras.extend([
+            "Consulta e liberação do motorista, ajudante e veículo[cite: 18].",
+            "Rastreamento / Monitoramento[cite: 18].",
+            (
+                "Rastreador Redundante RF OU Escolta Armada OU Imobilizador"
+                " Inteligente[cite: 18]."
+            ),
+        ])
+        connector_avisos.extend([
+            "Proibido Rodagem entre 22h às 05h[cite: 18].",
+            "Proibido utilização de equipamento em modo “sleep”[cite: 18].",
+            "Pernoite deverá ser monitorado a cada 30 minutos[cite: 18].",
+        ])
+    elif valor <= 2500000.00:
+        regras.extend([
+            "Consulta e liberação do motorista, ajudante e veículo[cite: 18].",
+            "Rastreamento / Monitoramento[cite: 18].",
+            "Um (01) Rastreador Móvel (Isca)[cite: 18].",
+            "Rastreador Redundante RF OU Imobilizador Inteligente[cite: 18].",
+            "Trava de 5ª Roda ou Bloqueador de carreta[cite: 18].",
+        ])
+        connector_avisos.extend([
+            "Proibido Rodagem entre 22h às 05h[cite: 18].",
+            "Proibido utilização de equipamento em modo “sleep”[cite: 18].",
+            "Pernoite deverá ser monitorado a cada 30 minutos[cite: 18].",
+        ])
     else:
-        lmg_limite = tabela_regras.get(produto, 150000.00)
-        ultrapassou = valor_mercadoria > lmg_limite
-        
-        if produto == "Farinha de peixe":
-            regras_gr = obter_regras_farinha_peixe(valor_mercadoria)
-            tipo_regra_txt = "Farinha de Peixe (Exceto RJ)"
-        elif container_pr:
-            regras_gr = obter_regras_container_pr(valor_mercadoria, lmg_limite)
-            tipo_regra_txt = "Container (Origem e Destino no Paraná - PR)"
-        else:
-            regras_gr = obter_regras_gerenciamento(valor_mercadoria, lmg_limite)
-            tipo_regra_txt = "Regras Gerais"
-        
-        st.divider()
-        titulo_relatorio = f"📊 Relatorio de Analise"
-        if cliente:
-            titulo_relatorio += f": {cliente}"
-        st.subheader(titulo_relatorio)
-        
-        st.info(f"**Rota:** {cidade_inicio} -> {destino} \n\n **Produto / Condição:** {produto} \n\n **Tipo de Tabela GR:** {tipo_regra_txt}")
-        
-        col_a, col_b = st.columns(2)
-        with col_a:
-            st.metric(label="Valor Informado da Carga", value=f"R$ {valor_mercadoria:,.2f}")
-        with col_b:
-            st.metric(label="LMG Limite da Apolice", value=f"R$ {lmg_limite:,.2f}")
-            
-        if ultrapassou:
-            st.error("🚨 **ALERTA CRITICO DE LMG:** O valor da mercadoria **ULTRAPASSA** o limite máximo fixado pela apólice!")
-            st.warning("⚠️ **Importante:** Nas operações que ultrapassarem os limites estabelecidos, o Segurado obriga-se a dar aviso, por escrito, à Seguradora, com **antecipação mínima de 3 (três) dias úteis**, contados da data de embarque.")
-        else:
-            st.success("✅ **Status LMG:** O valor da carga esta dentro do limite fixado para esta mercadoria.")
-            
+        regras.extend([
+            "Consulta e liberação do motorista, ajudante e veículo[cite: 18].",
+            "Rastreamento / Monitoramento[cite: 18].",
+            (
+                "Um (01) Rastreador Móvel (Isca) + Rastreador Redundante RF OU"
+                " Imobilizador Inteligente[cite: 18]."
+            ),
+            (
+                "Escolta Armada OU POS adicional de 10% caso não tenha sido"
+                " utilizado Escolta Armada[cite: 18]."
+            ),
+            "Trava de 5ª Roda ou Bloqueador de carreta[cite: 18].",
+        ])
+        connector_avisos.extend([
+            "Proibido Rodagem entre 22h às 05h[cite: 18].",
+            "Proibido utilização de equipamento em modo “sleep”[cite: 18].",
+            "Pernoite deverá ser monitorado a cada 30 minutos[cite: 18].",
+        ])
+    return regras, connector_avisos
+
+
+# Layout do Formulário de Entrada na Barra Lateral
+st.sidebar.header("🔍 Parâmetros de Embarque")
+
+local_coleta = st.sidebar.text_input("Local de Coleta (Origem):", "")
+local_entrega = st.sidebar.text_input("Local de Entrega (Destino):", "")
+
+tipo_container = st.sidebar.selectbox(
+    "Tipo de Operação em Container:",
+    [
+        "Não é Container",
+        "Container (Origem e Destino no PR)",
+        "Container (Outras Regiões - Exceto PR e RJ)",
+    ],
+)
+
+tipo_selecao = st.sidebar.radio(
+    "Tipo de Seleção:", ["Embarcador Específico", "Mercadoria Geral"]
+)
+
+if tipo_selecao == "Embarcador Específico":
+    commodity_selecionada = st.sidebar.selectbox(
+        "Selecione o Embarcador:", list(embarcadores_especificos.keys())
+    )
+    dados_commodity = embarcadores_especificos[commodity_selecionada]
+else:
+    commodity_selecionada = st.sidebar.selectbox(
+        "Selecione a Mercadoria:", list(mercadorias_gerais.keys())
+    )
+    dados_commodity = mercadorias_gerais[commodity_selecionada]
+
+valor_carga = st.sidebar.number_input(
+    "Valor Informado da Carga (R$):",
+    min_value=0.0,
+    value=0.0,
+    step=10000.0,
+    format="%.2f",
+)
+
+# Botão de Consulta
+consultar_clicado = st.sidebar.button(
+    "📋 Consultar Apólice", type="primary", use_container_width=True
+)
+
+# Comportamento Inicial da Tela
+if not consultar_clicado:
+    st.info(
+        "👈 Preencha os parâmetros de embarque na barra lateral e clique em"
+        " **'Consultar Apólice'** para iniciar a validação."
+    )
+else:
+    if "Selecione" in commodity_selecionada or valor_carga <= 0:
+        st.warning(
+            "⚠️ Por favor, selecione uma opção válida e informe um valor de"
+            " carga superior a zero."
+        )
+    else:
+        lmg_base = dados_commodity["lmg_base"]
+        lmg_maximo = dados_commodity["lmg_maximo"]
+
+        st.markdown(f"### 📍 Rota: `{local_coleta}` ➔ `{local_entrega}`")
+
+        col1, col2, col3 = st.columns(3)
+
+        with col1:
+            st.metric(
+                label="Valor Informado da Carga",
+                value=f"R$ {valor_carga:,.2f}".replace(",", "X")
+                .replace(".", ",")
+                .replace("X", "."),
+            )
+
+        with col2:
+            st.metric(
+                label="Limite Base (Relação GR)",
+                value=f"R$ {lmg_base:,.2f}".replace(",", "X")
+                .replace(".", ",")
+                .replace("X", "."),
+            )
+
+        with col3:
+            st.metric(
+                label="Limite Máximo da Categoria",
+                value=f"R$ {lmg_maximo:,.2f}".replace(",", "X")
+                .replace(".", ",")
+                .replace("X", "."),
+            )
+
         st.markdown("---")
-        st.subheader("📋 Exigências de Gerenciamento de Risco (GR)")
-        for regra in regras_gr:
-            st.markdown(f"- {regra}")
+
+        st.info(
+            f"🔍 **Consulta Realizada para:** {commodity_selecionada} | Tipo:"
+            f" {tipo_container} | Rota: {local_coleta} ➔ {local_entrega}"
+        )
+
+        # Validação cruzando com o limite máximo específico
+        if valor_carga > lmg_maximo:
+            st.error(
+                f"🚨 **ALERTA CRÍTICO:** O valor da mercadoria (R$"
+                f" {valor_carga:,.2f}) **ULTRAPASSA** o limite máximo permitido"
+                f" de R$ {lmg_maximo:,.2f} para esta categoria na apólice!"
+            )
+        elif valor_carga > lmg_base:
+            st.warning(
+                f"⚠️ **ATENÇÃO (Acima do Limite Base da Relação - R$"
+                f" {lmg_base:,.2f}):**\n"
+                "- O valor está acima do limite fixo da relação, mas dentro do"
+                " limite máximo aceito.\n"
+                "- **Regra de Prazo e Aceitação Tácita:** O Segurado obriga-se"
+                " a dar aviso, por escrito, à Seguradora, com **antecipação"
+                " mínima de 3 (três) dias úteis**, contados da data de"
+                " embarque.\n"
+                "- A Seguradora deverá se pronunciar no prazo de até **3 (três)"
+                " dias úteis**, após o recebimento, sobre a aceitação ou não do"
+                " risco.\n"
+                "- A **ausência de manifestação por escrito** da Seguradora"
+                " caracterizará a **aceitação tácita** do risco proposto."
+            )
+
+            exigencias_gr, avisos_gr = obter_regras_gr_padrao_tabela(
+                valor_carga, lmg_base
+            )
+            st.markdown(
+                "### 📋 Exigências de Gerenciamento de Risco (GR) - Tabela Geral"
+            )
+
+            st.markdown(
+                f"*Regras aplicadas para a faixa de valor de R$"
+                f" {valor_carga:,.2f}:*"
+            )
+
+            for req in exigencias_gr:
+                st.markdown(f"- {req}")
+
+            if avisos_gr:
+                st.markdown("#### 🛑 Restrições e Monitoramento Operacional:")
+                for aviso in avisos_gr:
+                    st.markdown(f"- {aviso}")
+        else:
+            st.success(
+                "✅ **Dentro do limite base da relação** estabelecido na"
+                " apólice."
+            )
+
+            exigencias_gr, avisos_gr = obter_regras_gr_padrao_tabela(
+                valor_carga, lmg_base
+            )
+            st.markdown(
+                "### 📋 Exigências de Gerenciamento de Risco (GR) - Tabela Geral"
+            )
+
+            st.markdown(
+                f"*Regras aplicadas para a faixa de valor de R$"
+                f" {valor_carga:,.2f}:*"
+            )
+
+            for req in exigencias_gr:
+                st.markdown(f"- {req}")
+
+            if avisos_gr:
+                st.markdown("#### 🛑 Restrições e Monitoramento Operacional:")
+                for aviso in avisos_gr:
+                    st.markdown(f"- {aviso}")
+
+# Nota Geral de Rodapé da Apólice
+st.markdown("---")
+st.caption(
+    "📌 **NOTA 1:** Proibido o uso do aplicativo de frete para contratação de"
+    " motoristas, exceto FRETEBRAS e PX."
+)
