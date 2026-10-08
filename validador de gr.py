@@ -72,6 +72,7 @@ mercadorias_limites_especificos = {
         6000000.00,
     ),
     "Alumínio em geral": (150000.00, 6000000.00),
+    "Farinha de peixe": (200000.00, 450000.00),
     "Artigos de higiene e limpeza, cosméticos e perfumaria": (
         150000.00,
         6000000.00,
