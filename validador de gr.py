@@ -226,7 +226,7 @@ def obter_regras_gr(
     no_parana = origem_up == "PR" and destino_up == "PR"
 
     isencao_pr = False
-    cidades_eixo = ["PARANAGUÁ", "CURITIBA"]
+    cidades_eixo = ["PARANAGUÁ", "CURITIBA", "SÃO JOSÉ DOS PINHAIS", "ADRIANÓPOLIS", "AGUDOS DO SUL", "ALMIRANTE TAMANDARÉ", "ARAUCÁRIA", "BALSA NOVA", "BOCAIÚVA DO SUL", "CAMPINA GRANDE DO SUL", "CAMPO DO TENENTE", "CAMPO LARGO", "CAMPO MAGRO", "CERRO AZUL", "COLOMBO", "CONTENDA", "DOUTOR ULYSSES", "FAZENDA RIO GRANDE", "ITAPERUÇU", "LAPA", "MANDIRITUBA", "PIÊN", "PINHAIS", "PIRAQUARA", "QUATRO BARRAS", "QUITANDINHA", "RIO BRANCO DO SUL", "RIO NEGRO", "TIJUCAS DO SUL", "TUNAS DO PARANÁ"]
     if no_parana and (
         cidade_o_up in cidades_eixo and cidade_d_up in cidades_eixo
     ):
