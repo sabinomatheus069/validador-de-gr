@@ -65,7 +65,7 @@ mercadorias_limites_especificos = {
     (
         "GLUCOSE / MALTOSE; CHOCOLATE LÍQUIDO OU EM MASSA; ÁCIDO CÍTRICO;"
         " GELATINA; AMIDOS"
-    ): (450000.00, 6000000.00),
+    ): (450000.00, 4000000.00),
     "Álcool etílico e para fins medicinais / farmacêuticos": (
         150000.00,
         6000000.00,
