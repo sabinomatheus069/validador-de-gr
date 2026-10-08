@@ -52,14 +52,14 @@ def carregar_cidades(uf_sigla):
   return []
 
 
-# Lista de Embarcadores com Regras Específicas
 embarcadores_especiais = [
     "Nenhum (Usar Mercadoria Geral)",
     "RENAULT DO BRASIL, VOLVO E SCANIA EM CONTAINER",
+    "ALGODÃO",
 ]
 
 
-# Dicionário Completo de Mercadorias Específicas (Extraído da Planilha Oficial)
+# Dicionário Completo de Mercadorias Específicas
 mercadorias_limites_especificos = {
     "Selecione a Mercadoria...": (0.00, 0.00),
     "Aço e ferro em geral": (150000.00, 6000000.00),
@@ -152,8 +152,8 @@ mercadorias_limites_especificos = {
     ),
     "Óleos lubrificantes": (150000.00, 6000000.00),
     (
-        "Óleos Comestíveis, Óleos Vegetais, Azeites, Óleos Animais/Minerais/Sintéticos"
-        " (AAK DO BRASIL)"
+        "Óleos Comestíveis, Óleos Vegetais, Azeites, Óleos"
+        " Animais/Minerais/Sintéticos (AAK DO BRASIL)"
     ): (200000.00, 6000000.00),
     "Papel e celulose em geral (Exceto bobina de papel)": (
         150000.00,
@@ -196,7 +196,7 @@ mercadorias_limites_especificos = {
 }
 
 
-# Função de Regras de GR principal corrigida para tratar rotas interestaduais gerais
+# Função de Regras de GR principal
 def obter_regras_gr(
     uf_origem,
     uf_destino,
@@ -225,9 +225,39 @@ def obter_regras_gr(
     cidade_d_up = cidade_dest.upper()
 
     no_parana = origem_up == "PR" and destino_up == "PR"
-
     isencao_pr = False
-    cidades_eixo = ["PARANAGUÁ", "CURITIBA", "SÃO JOSÉ DOS PINHAIS", "ADRIANÓPOLIS", "AGUDOS DO SUL", "ALMIRANTE TAMANDARÉ", "ARAUCÁRIA", "BALSA NOVA", "BOCAIÚVA DO SUL", "CAMPINA GRANDE DO SUL", "CAMPO DO TENENTE", "CAMPO LARGO", "CAMPO MAGRO", "CERRO AZUL", "COLOMBO", "CONTENDA", "DOUTOR ULYSSES", "FAZENDA RIO GRANDE", "ITAPERUÇU", "LAPA", "MANDIRITUBA", "PIÊN", "PINHAIS", "PIRAQUARA", "QUATRO BARRAS", "QUITANDINHA", "RIO BRANCO DO SUL", "RIO NEGRO", "TIJUCAS DO SUL", "TUNAS DO PARANÁ"]
+    cidades_eixo = [
+        "PARANAGUÁ",
+        "CURITIBA",
+        "SÃO JOSÉ DOS PINHAIS",
+        "ADRIANÓPOLIS",
+        "AGUDOS DO SUL",
+        "ALMIRANTE TAMANDARÉ",
+        "ARAUCÁRIA",
+        "BALSA NOVA",
+        "BOCAIÚVA DO SUL",
+        "CAMPINA GRANDE DO SUL",
+        "CAMPO DO TENENTE",
+        "CAMPO LARGO",
+        "CAMPO MAGRO",
+        "CERRO AZUL",
+        "COLOMBO",
+        "CONTENDA",
+        "DOUTOR ULYSSES",
+        "FAZENDA RIO GRANDE",
+        "ITAPERUÇU",
+        "LAPA",
+        "MANDIRITUBA",
+        "PIÊN",
+        "PINHAIS",
+        "PIRAQUARA",
+        "QUATRO BARRAS",
+        "QUITANDINHA",
+        "RIO BRANCO DO SUL",
+        "RIO NEGRO",
+        "TIJUCAS DO SUL",
+        "TUNAS DO PARANÁ",
+    ]
     if no_parana and (
         cidade_o_up in cidades_eixo and cidade_d_up in cidades_eixo
     ):
@@ -262,9 +292,11 @@ def obter_regras_gr(
       elif valor_carga <= 8000000.00:
         return {
             "status": "OK",
-            "consulta": "Sim"
-            if not isencao_pr
-            else "Isento (Até R$ 1.5M Paranaguá x Curitiba)",
+            "consulta": (
+                "Sim"
+                if not isencao_pr
+                else "Isento (Até R$ 1.5M Paranaguá x Curitiba)"
+            ),
             "monitoramento": "Sim",
             "isca": (
                 "1 Isca OU Eqpto. Fixo Redundante RF OU Rastr. Contingência"
@@ -311,9 +343,7 @@ def obter_regras_gr(
             "consulta": "Sim",
             "monitoramento": "Sim",
             "isca": "Não exigido",
-            "escolta": (
-                "🚨 **PROIBIDO AUTÔNOMO** | Pernoite a cada 30 min"
-            ),
+            "escolta": "🚨 **PROIBIDO AUTÔNOMO** | Pernoite a cada 30 min",
         }
       elif valor_carga <= 6000000.00:
         return {
@@ -362,140 +392,223 @@ def obter_regras_gr(
             ),
         }
 
-  # --- REGRAS PADRÃO POR MERCADORIA ESPECÍFICA (Aplica-se a PRxPR ou Interestadual Geral) ---
-  is_pr_pr = uf_origem == "PR" and uf_destino == "PR"
+  # --- TRATAMENTO PARA ALGODÃO ---
+  elif embarcador_selecionado == "ALGODÃO":
+    if valor_carga > 1000000.00:
+      return {
+          "status": "BLOQUEADO",
+          "mensagem": (
+              f"O valor da carga (R$ {valor_carga:,.2f}) ultrapassa o Teto"
+              " Máximo permitido para Algodão (R$ 1.000.000,00). Exige Carga"
+              " Esporádica."
+          ),
+      }
 
-  if is_pr_pr:
-    if valor_carga <= limite_fixo:
-      return {
-          "status": "OK",
-          "consulta": "Sim",
-          "monitoramento": "Não exigido",
-          "isca": "Não exigido",
-          "escolta": "Não exigido",
-      }
-    elif valor_carga <= 600000.00:
-      return {
-          "status": "OK",
-          "consulta": "Sim",
-          "monitoramento": "Sim",
-          "isca": "Não exigido",
-          "escolta": "Proibido modo Sleep | Pernoite a cada 30 min",
-      }
-    elif valor_carga <= 1200000.00:
-      return {
-          "status": "OK",
-          "consulta": "Sim",
-          "monitoramento": "Sim",
-          "isca": (
-              "1 Isca OU Rastreador Redundante RF OU Escolta Armada OU"
-              " Imobilizador Inteligente"
-          ),
-          "escolta": "Proibido modo Sleep | Pernoite a cada 30 min",
-      }
-    elif valor_carga <= 2500000.00:
-      return {
-          "status": "OK",
-          "consulta": "Sim",
-          "monitoramento": "Sim",
-          "isca": (
-              "1 Isca OU Rastreador Redundante RF OU Escolta Armada OU"
-              " Imobilizador Inteligente"
-          ),
-          "escolta": (
-              "+ Rastreador Redundante RF OU Escolta Armada OU Imobilizador"
-              " Inteligente\n🚨 **PROIBIDA RODAGEM 22H ÀS 05H**"
-          ),
-      }
+    origem_up = uf_origem.upper()
+    destino_up = uf_destino.upper()
+    cidade_o_up = cidade_origem.upper()
+    cidade_d_up = cidade_dest.upper()
+
+    origens_validas = ["CURITIBA", "SÃO JOSÉ DOS PINHAIS"]
+    destinos_validas_tabela1 = ["PARANAGUÁ", "ITAPOÁ"]
+
+    eixo_especifico = (
+        cidade_o_up in origens_validas and cidade_d_up in destinos_validas_tabela1
+    ) or (
+        cidade_o_up in destinos_validas_tabela1 and cidade_d_up in origens_validas
+    )
+
+    if eixo_especifico:
+      if valor_carga <= 300000.00:
+        return {
+            "status": "OK",
+            "consulta": "Sim",
+            "monitoramento": "Não exigido",
+            "area_de_risco": "Não exigido",
+            "isca": "Não exigido",
+            "escolta": "Não exigido",
+        }
+      elif valor_carga <= 600000.00:
+        return {
+            "status": "OK",
+            "consulta": "Sim",
+            "monitoramento": "Sim",
+            "area_de_risco": "Sim",
+            "isca": "Não exigido",
+            "escolta": "Não exigido",
+        }
+      else:
+        return {
+            "status": "OK",
+            "consulta": "Sim",
+            "monitoramento": "Sim",
+            "area_de_risco": "Sim",
+            "isca": "Isca/Eqpto. Móvel OU Escolta",
+            "escolta": "Isca/Eqpto. Móvel OU Escolta",
+        }
     else:
-      return {
-          "status": "OK",
-          "consulta": "Sim",
-          "monitoramento": "Sim",
-          "isca": (
-              "1 Isca OU Rastreador Redundante RF OU Imobilizador"
-              " Inteligente"
-          ),
-          "escolta": (
-              "Rastreador Redundante RF OU Trava Eletrônica + Imobilizador"
-              " OU Escolta Armada + Trava de 5ª Roda OU Bloqueador de Carreta"
-              " OU Cadeado Inteligente\n🚨 **PROIBIDA RODAGEM 22H ÀS 05H**"
-          ),
-      }
+      if valor_carga <= 150000.00:
+        return {
+            "status": "OK",
+            "consulta": "Sim",
+            "monitoramento": "Não exigido",
+            "area_de_risco": "Não exigido",
+            "isca": "Não exigido",
+            "escolta": "Não exigido",
+        }
+      elif valor_carga <= 600000.00:
+        return {
+            "status": "OK",
+            "consulta": "Sim",
+            "monitoramento": "Sim",
+            "area_de_risco": "Sim",
+            "isca": "Não exigido",
+            "escolta": "Não exigido",
+        }
+      else:
+        return {
+            "status": "OK",
+            "consulta": "Sim",
+            "monitoramento": "Sim",
+            "area_de_risco": "Sim",
+            "isca": "Isca/Eqpto. Móvel OU Escolta",
+            "escolta": "Isca/Eqpto. Móvel OU Escolta",
+        }
+
+  # --- REGRAS PADRÃO POR MERCADORIA ESPECÍFICA ---
   else:
-    # Regra Interestadual Geral (inclui saídas do PR para outros estados como MA, SP, etc.)
-    if valor_carga <= limite_fixo:
-      return {
-          "status": "OK",
-          "consulta": "Sim",
-          "monitoramento": "Não exigido",
-          "isca": "Não exigido",
-          "escolta": "Não exigido",
-      }
-    elif valor_carga <= 600000.00:
-      return {
-          "status": "OK",
-          "consulta": "Sim",
-          "monitoramento": "Sim",
-          "isca": "Não exigido",
-          "escolta": "PROIBIDO AUTÔNOMO | Modo Sleep proibido",
-      }
-    elif valor_carga <= 1200000.00:
-      return {
-          "status": "OK",
-          "consulta": "Sim",
-          "monitoramento": "Sim",
-          "isca": (
-              "1 Isca OU Redundante RF OU Escolta Armada OU Imobilizador"
-          ),
-          "escolta": "PROIBIDO AUTÔNOMO | Pernoite 30 min",
-      }
-    elif valor_carga <= 2000000.00:
-      return {
-          "status": "OK",
-          "consulta": "Sim",
-          "monitoramento": "Sim",
-          "isca": (
-              "Redundante RF OU Escolta Armada OU Imobilizador Inteligente"
-          ),
-          "escolta": (
-              "PROIBIDO AUTÔNOMO\n🚨 **PROIBIDA RODAGEM 22H ÀS 05H**"
-          ),
-      }
-    elif valor_carga <= 2500000.00:
-      return {
-          "status": "OK",
-          "consulta": "Sim",
-          "monitoramento": "Sim",
-          "isca": "1 Isca (Rastreador Móvel)",
-          "escolta": (
-              "Redundante RF / Imobilizador + Trava de 5ª Roda / Bloqueador\n🚨"
-              " **PROIBIDO AUTÔNOMO**\n🚨 **PROIBIDA RODAGEM 22H ÀS 05H**"
-          ),
-      }
-    elif valor_carga <= 4000000.00:
-      return {
-          "status": "OK",
-          "consulta": "Sim",
-          "monitoramento": "Sim",
-          "isca": "1 Isca / Redundante RF OU Imobilizador",
-          "escolta": (
-              "Escolta Armada (OU POS Adicional de 10% sem Escolta) + Trava de"
-              " 5ª Roda\n🚨 **PROIBIDO AUTÔNOMO**\n🚨 **PROIBIDA RODAGEM 22H ÀS"
-              " 05H**"
-          ),
-      }
+    is_pr_pr = uf_origem == "PR" and uf_destino == "PR"
+
+    if is_pr_pr:
+      if valor_carga <= limite_fixo:
+        return {
+            "status": "OK",
+            "consulta": "Sim",
+            "monitoramento": "Não exigido",
+            "isca": "Não exigido",
+            "escolta": "Não exigido",
+        }
+      elif valor_carga <= 600000.00:
+        return {
+            "status": "OK",
+            "consulta": "Sim",
+            "monitoramento": "Sim",
+            "isca": "Não exigido",
+            "escolta": "Proibido modo Sleep | Pernoite a cada 30 min",
+        }
+      elif valor_carga <= 1200000.00:
+        return {
+            "status": "OK",
+            "consulta": "Sim",
+            "monitoramento": "Sim",
+            "isca": (
+                "1 Isca OU Rastreador Redundante RF OU Escolta Armada OU"
+                " Imobilizador Inteligente"
+            ),
+            "escolta": "Proibido modo Sleep | Pernoite a cada 30 min",
+        }
+      elif valor_carga <= 2500000.00:
+        return {
+            "status": "OK",
+            "consulta": "Sim",
+            "monitoramento": "Sim",
+            "isca": (
+                "1 Isca OU Rastreador Redundante RF OU Escolta Armada OU"
+                " Imobilizador Inteligente"
+            ),
+            "escolta": (
+                "+ Rastreador Redundante RF OU Escolta Armada OU Imobilizador"
+                " Inteligente\n🚨 **PROIBIDA RODAGEM 22H ÀS 05H**"
+            ),
+        }
+      else:
+        return {
+            "status": "OK",
+            "consulta": "Sim",
+            "monitoramento": "Sim",
+            "isca": (
+                "1 Isca OU Rastreador Redundante RF OU Imobilizador"
+                " Inteligente"
+            ),
+            "escolta": (
+                "Rastreador Redundante RF OU Trava Eletrônica + Imobilizador"
+                " OU Escolta Armada + Trava de 5ª Roda OU Bloqueador de Carreta"
+                " OU Cadeado Inteligente\n🚨 **PROIBIDA RODAGEM 22H ÀS 05H**"
+            ),
+        }
     else:
-      return {
-          "status": "OK",
-          "consulta": "Sim",
-          "monitoramento": "Sim",
-          "isca": "1 Isca / Redundante RF OU Imobilizador",
-          "escolta": (
-              "Escolta Armada OU Fiscal de Rota + Trava de 5ª Roda\n🚨"
-              " **PROIBIDO AUTÔNOMO**\n🚨 **PROIBIDA RODAGEM 22H ÀS 05H**"
-          ),
-      }
+      if valor_carga <= limite_fixo:
+        return {
+            "status": "OK",
+            "consulta": "Sim",
+            "monitoramento": "Não exigido",
+            "isca": "Não exigido",
+            "escolta": "Não exigido",
+        }
+      elif valor_carga <= 600000.00:
+        return {
+            "status": "OK",
+            "consulta": "Sim",
+            "monitoramento": "Sim",
+            "isca": "Não exigido",
+            "escolta": "PROIBIDO AUTÔNOMO | Modo Sleep proibido",
+        }
+      elif valor_carga <= 1200000.00:
+        return {
+            "status": "OK",
+            "consulta": "Sim",
+            "monitoramento": "Sim",
+            "isca": (
+                "1 Isca OU Redundante RF OU Escolta Armada OU Imobilizador"
+            ),
+            "escolta": "PROIBIDO AUTÔNOMO | Pernoite 30 min",
+        }
+      elif valor_carga <= 2000000.00:
+        return {
+            "status": "OK",
+            "consulta": "Sim",
+            "monitoramento": "Sim",
+            "isca": (
+                "Redundante RF OU Escolta Armada OU Imobilizador Inteligente"
+            ),
+            "escolta": (
+                "PROIBIDO AUTÔNOMO\n🚨 **PROIBIDA RODAGEM 22H ÀS 05H**"
+            ),
+        }
+      elif valor_carga <= 2500000.00:
+        return {
+            "status": "OK",
+            "consulta": "Sim",
+            "monitoramento": "Sim",
+            "isca": "1 Isca (Rastreador Móvel)",
+            "escolta": (
+                "Redundante RF / Imobilizador + Trava de 5ª Roda / Bloqueador\n🚨"
+                " **PROIBIDO AUTÔNOMO**\n🚨 **PROIBIDA RODAGEM 22H ÀS 05H**"
+            ),
+        }
+      elif valor_carga <= 4000000.00:
+        return {
+            "status": "OK",
+            "consulta": "Sim",
+            "monitoramento": "Sim",
+            "isca": "1 Isca / Redundante RF OU Imobilizador",
+            "escolta": (
+                "Escolta Armada (OU POS Adicional de 10% sem Escolta) + Trava de"
+                " 5ª Roda\n🚨 **PROIBIDO AUTÔNOMO**\n🚨 **PROIBIDA RODAGEM 22H ÀS"
+                " 05H**"
+            ),
+        }
+      else:
+        return {
+            "status": "OK",
+            "consulta": "Sim",
+            "monitoramento": "Sim",
+            "isca": "1 Isca / Redundante RF OU Imobilizador",
+            "escolta": (
+                "Escolta Armada OU Fiscal de Rota + Trava de 5ª Roda\n🚨"
+                " **PROIBIDO AUTÔNOMO**\n🚨 **PROIBIDA RODAGEM 22H ÀS 05H**"
+            ),
+        }
 
 
 # Carregar estados do IBGE
@@ -533,7 +646,10 @@ embarcador_selecionado = st.sidebar.selectbox(
 )
 
 if embarcador_selecionado != "Nenhum (Usar Mercadoria Geral)":
-  limite_fixo, teto_maximo = 0.00, 10000000.00
+  if embarcador_selecionado == "ALGODÃO":
+    limite_fixo, teto_maximo = 0.00, 1000000.00
+  else:
+    limite_fixo, teto_maximo = 0.00, 10000000.00
   mercadoria_selecionada = embarcador_selecionado
   st.sidebar.info(f"Regra ativa para o embarcador: **{embarcador_selecionado}**")
 else:
@@ -592,30 +708,36 @@ else:
       embarcador_selecionado,
   )
 
-  if resultado_gr["status"] == "ERRO":
-    st.error(f"🚨 **ATENÇÃO:** {resultado_gr['mensagem']}")
-  else:
-    st.success(
-        "✅ O valor da carga está dentro do Teto Máximo permitido para esta"
-        " operação."
-    )
+  # Utilizando contentores para estabilizar a árvore DOM e evitar erros do React
+  container_resultado = st.container()
 
-    st.markdown("### 📋 Requisitos de Gerenciamento de Risco (GR)")
+  with container_resultado:
+    if resultado_gr["status"] in ["ERRO", "BLOQUEADO"]:
+      st.error(
+          f"🚨 **ATENÇÃO / BLOQUEIO:** {resultado_gr.get('mensagem', 'O valor da carga ultrapassa o teto máximo permitido para esta operação.')}"
+      )
+    else:
+      st.success(
+          "✅ O valor da carga está dentro do Teto Máximo permitido para esta"
+          " operação."
+      )
 
-    col_a, col_b = st.columns(2)
-    with col_a:
-      st.markdown(
-          f"* **Consulta Obrigatória:** `{resultado_gr['consulta']}`"
-      )
-      st.markdown(
-          f"* **Monitoramento:** `{resultado_gr['monitoramento']}`"
-      )
-    with col_b:
-      st.markdown(
-          f"* **Isca / Eqpto. Móvel / Tecnologias:**"
-          f" `{resultado_gr['isca']}`"
-      )
-      st.markdown(
-          f"* **Escolta / Dispositivos Adicionais:**"
-          f" `{resultado_gr['escolta']}`"
-      )
+      st.markdown("### 📋 Requisitos de Gerenciamento de Risco (GR)")
+
+      col_a, col_b = st.columns(2)
+      with col_a:
+        st.markdown(
+            f"* **Consulta Obrigatória:** `{resultado_gr['consulta']}`"
+        )
+        st.markdown(
+            f"* **Monitoramento:** `{resultado_gr['monitoramento']}`"
+        )
+      with col_b:
+        st.markdown(
+            f"* **Isca / Eqpto. Móvel / Tecnologias:**"
+            f" `{resultado_gr['isca']}`"
+        )
+        st.markdown(
+            f"* **Escolta / Dispositivos Adicionais:**"
+            f" `{resultado_gr['escolta']}`"
+        )
