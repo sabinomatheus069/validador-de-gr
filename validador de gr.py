@@ -9,7 +9,7 @@ st.set_page_config(
 )
 
 # Título da Aplicação
-st.title("🛡️ Validador de LMG, Gerenciamento de Risco (GR) e Contêineres")
+st.title("🛡️ Validador de LMG, GR e Mercadorias - TLOG / Sompo")
 st.markdown(
     "Ferramenta integrada de consulta de limites, regras de embarcadores,"
     " mercadorias específicas da apólice e exigências de segurança."
