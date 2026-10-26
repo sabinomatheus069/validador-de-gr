@@ -21,11 +21,11 @@ st.markdown(
 def carregar_estados():
   try:
     url = "https://servicodados.ibge.gov.br/api/v1/localidades/estados?orderBy=nome"
-    response = requests.get(url)
+    response = requests.get(url, timeout=5)
     if response.status_code == 200:
       dados = response.json()
       return {uf["sigla"]: uf["nome"] for uf in dados}
-  except:
+  except Exception:
     pass
   return {
       "PR": "Paraná",
@@ -40,13 +40,16 @@ def carregar_estados():
 # Função para buscar Cidades de um Estado via API do IBGE
 @st.cache_data
 def carregar_cidades(uf_sigla):
+  if not uf_sigla or uf_sigla == "Selecione...":
+    return []
+
   try:
     url = f"https://servicodados.ibge.gov.br/api/v1/localidades/estados/{uf_sigla}/municipios?orderBy=nome"
-    response = requests.get(url)
+    response = requests.get(url, timeout=5)
     if response.status_code == 200:
       dados = response.json()
       return [cidade["nome"] for cidade in dados]
-  except:
+  except Exception:
     pass
   return []
 
