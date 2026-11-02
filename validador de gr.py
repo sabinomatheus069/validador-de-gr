@@ -16,42 +16,61 @@ st.markdown(
 )
 
 
-# Função para buscar Estados (UFs) do Brasil via API do IBGE
-@st.cache_data
+ESTADOS_BR = {
+    "AC": "Acre", "AL": "Alagoas", "AP": "Amapá", "AM": "Amazonas",
+    "BA": "Bahia", "CE": "Ceará", "DF": "Distrito Federal",
+    "ES": "Espírito Santo", "GO": "Goiás", "MA": "Maranhão",
+    "MT": "Mato Grosso", "MS": "Mato Grosso do Sul", "MG": "Minas Gerais",
+    "PA": "Pará", "PB": "Paraíba", "PR": "Paraná", "PE": "Pernambuco",
+    "PI": "Piauí", "RJ": "Rio de Janeiro", "RN": "Rio Grande do Norte",
+    "RS": "Rio Grande do Sul", "RO": "Rondônia", "RR": "Roraima",
+    "SC": "Santa Catarina", "SP": "São Paulo", "SE": "Sergipe",
+    "TO": "Tocantins",
+}
+
+
 def carregar_estados():
+  # Lista fixa (27 UFs): não depende de API externa
+  return dict(sorted(ESTADOS_BR.items(), key=lambda item: item[1]))
+
+
+@st.cache_data(ttl=86400, show_spinner=False)
+def _buscar_cidades(uf_sigla):
+  # Se lançar exceção, o Streamlit NÃO guarda no cache
+  headers = {"User-Agent": "Mozilla/5.0", "Accept": "application/json"}
+
+  # 1ª tentativa: IBGE
   try:
-    url = "https://servicodados.ibge.gov.br/api/v1/localidades/estados?orderBy=nome"
-    response = requests.get(url, timeout=5)
-    if response.status_code == 200:
-      dados = response.json()
-      return {uf["sigla"]: uf["nome"] for uf in dados}
+    url = f"https://servicodados.ibge.gov.br/api/v1/localidades/estados/{uf_sigla}/municipios?orderBy=nome"
+    r = requests.get(url, headers=headers, timeout=15)
+    r.raise_for_status()
+    cidades = [c["nome"] for c in r.json()]
+    if cidades:
+      return cidades
   except Exception:
     pass
-  return {
-      "PR": "Paraná",
-      "SP": "São Paulo",
-      "SC": "Santa Catarina",
-      "RS": "Rio Grande do Sul",
-      "RJ": "Rio de Janeiro",
-      "MT": "Mato Grosso",
-  }
+
+  # 2ª tentativa: BrasilAPI
+  try:
+    url = f"https://brasilapi.com.br/api/ibge/municipios/v1/{uf_sigla}?providers=dados-abertos-br,gov,wikipedia"
+    r = requests.get(url, headers=headers, timeout=15)
+    r.raise_for_status()
+    cidades = sorted(c["nome"] for c in r.json())
+    if cidades:
+      return cidades
+  except Exception:
+    pass
+
+  raise RuntimeError(f"Não foi possível carregar as cidades de {uf_sigla}")
 
 
-# Função para buscar Cidades de um Estado via API do IBGE
-@st.cache_data
 def carregar_cidades(uf_sigla):
   if not uf_sigla or uf_sigla == "Selecione...":
     return []
-
   try:
-    url = f"https://servicodados.ibge.gov.br/api/v1/localidades/estados/{uf_sigla}/municipios?orderBy=nome"
-    response = requests.get(url, timeout=5)
-    if response.status_code == 200:
-      dados = response.json()
-      return [cidade["nome"] for cidade in dados]
+    return _buscar_cidades(uf_sigla)
   except Exception:
-    pass
-  return []
+    return []
 
 
 embarcadores_especiais = [
@@ -620,26 +639,36 @@ lista_ufs = list(estados_dict.keys())
 # Barra lateral
 st.sidebar.header("🔍 Parâmetros da Consulta")
 
+estados_dict = carregar_estados()
+lista_ufs = list(estados_dict.keys())
+
+st.sidebar.header("🔍 Parâmetros da Consulta")
+
 uf_origem = st.sidebar.selectbox(
     "UF de Coleta (Origem):",
     lista_ufs,
-    index=lista_ufs.index("PR") if "PR" in lista_ufs else 0,
+    index=lista_ufs.index("PR"),
+    format_func=lambda s: f"{s} - {estados_dict[s]}",
 )
 cidades_origem = carregar_cidades(uf_origem)
-cidade_origem = st.sidebar.selectbox(
-    "Cidade de Origem:", cidades_origem if cidades_origem else ["Selecione..."]
-)
+if cidades_origem:
+  cidade_origem = st.sidebar.selectbox("Cidade de Origem:", cidades_origem)
+else:
+  st.sidebar.warning("Não foi possível carregar as cidades. Digite manualmente.")
+  cidade_origem = st.sidebar.text_input("Cidade de Origem:")
 
 uf_destino = st.sidebar.selectbox(
     "UF de Entrega (Destino):",
     lista_ufs,
-    index=lista_ufs.index("MA") if "MA" in lista_ufs else 0,
+    index=lista_ufs.index("MA"),
+    format_func=lambda s: f"{s} - {estados_dict[s]}",
 )
 cidades_destino = carregar_cidades(uf_destino)
-cidade_destino = st.sidebar.selectbox(
-    "Cidade de Destino:",
-    cidades_destino if cidades_destino else ["Selecione..."],
-)
+if cidades_destino:
+  cidade_destino = st.sidebar.selectbox("Cidade de Destino:", cidades_destino)
+else:
+  st.sidebar.warning("Não foi possível carregar as cidades. Digite manualmente.")
+  cidade_destino = st.sidebar.text_input("Cidade de Destino:")
 
 st.sidebar.markdown("---")
 st.sidebar.subheader("🏢 Área de Embarcador")
