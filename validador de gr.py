@@ -1,4 +1,4 @@
-import requests
+    import pandas as pd
 import streamlit as st
 
 # Configuração da Página
@@ -17,14 +17,32 @@ st.markdown(
 
 
 ESTADOS_BR = {
-    "AC": "Acre", "AL": "Alagoas", "AP": "Amapá", "AM": "Amazonas",
-    "BA": "Bahia", "CE": "Ceará", "DF": "Distrito Federal",
-    "ES": "Espírito Santo", "GO": "Goiás", "MA": "Maranhão",
-    "MT": "Mato Grosso", "MS": "Mato Grosso do Sul", "MG": "Minas Gerais",
-    "PA": "Pará", "PB": "Paraíba", "PR": "Paraná", "PE": "Pernambuco",
-    "PI": "Piauí", "RJ": "Rio de Janeiro", "RN": "Rio Grande do Norte",
-    "RS": "Rio Grande do Sul", "RO": "Rondônia", "RR": "Roraima",
-    "SC": "Santa Catarina", "SP": "São Paulo", "SE": "Sergipe",
+    "AC": "Acre",
+    "AL": "Alagoas",
+    "AP": "Amapá",
+    "AM": "Amazonas",
+    "BA": "Bahia",
+    "CE": "Ceará",
+    "DF": "Distrito Federal",
+    "ES": "Espírito Santo",
+    "GO": "Goiás",
+    "MA": "Maranhão",
+    "MT": "Mato Grosso",
+    "MS": "Mato Grosso do Sul",
+    "MG": "Minas Gerais",
+    "PA": "Pará",
+    "PB": "Paraíba",
+    "PR": "Paraná",
+    "PE": "Pernambuco",
+    "PI": "Piauí",
+    "RJ": "Rio de Janeiro",
+    "RN": "Rio Grande do Norte",
+    "RS": "Rio Grande do Sul",
+    "RO": "Rondônia",
+    "RR": "Roraima",
+    "SC": "Santa Catarina",
+    "SP": "São Paulo",
+    "SE": "Sergipe",
     "TO": "Tocantins",
 }
 
@@ -34,43 +52,32 @@ def carregar_estados():
   return dict(sorted(ESTADOS_BR.items(), key=lambda item: item[1]))
 
 
-@st.cache_data(ttl=86400, show_spinner=False)
-def _buscar_cidades(uf_sigla):
-  # Se lançar exceção, o Streamlit NÃO guarda no cache
-  headers = {"User-Agent": "Mozilla/5.0", "Accept": "application/json"}
-
-  # 1ª tentativa: IBGE
+@st.cache_data(show_spinner=False)
+def carregar_base_municipios():
+  """Lê o arquivo CSV local de municípios (ajuste a codificação se necessário)."""
   try:
-    url = f"https://servicodados.ibge.gov.br/api/v1/localidades/estados/{uf_sigla}/municipios?orderBy=nome"
-    r = requests.get(url, headers=headers, timeout=15)
-    r.raise_for_status()
-    cidades = [c["nome"] for c in r.json()]
-    if cidades:
-      return cidades
-  except Exception:
-    pass
-
-  # 2ª tentativa: BrasilAPI
-  try:
-    url = f"https://brasilapi.com.br/api/ibge/municipios/v1/{uf_sigla}?providers=dados-abertos-br,gov,wikipedia"
-    r = requests.get(url, headers=headers, timeout=15)
-    r.raise_for_status()
-    cidades = sorted(c["nome"] for c in r.json())
-    if cidades:
-      return cidades
-  except Exception:
-    pass
-
-  raise RuntimeError(f"Não foi possível carregar as cidades de {uf_sigla}")
+    df = pd.read_csv("municipios.csv", encoding="latin1", sep=";")
+    return df
+  except Exception as e:
+    st.error(f"Erro ao carregar o arquivo 'municipios.csv': {e}")
+    return pd.DataFrame()
 
 
 def carregar_cidades(uf_sigla):
   if not uf_sigla or uf_sigla == "Selecione...":
     return []
-  try:
-    return _buscar_cidades(uf_sigla)
-  except Exception:
+
+  df = carregar_base_municipios()
+  if df.empty:
     return []
+
+  # Filtra pelo estado (ajuste o nome da coluna de UF se diferir no seu CSV, ex: 'UF')
+  cidades = (
+      df[df["UF"].str.upper() == uf_sigla.upper()]["MUNICÍPIO - IBGE"]
+      .dropna()
+      .unique()
+  )
+  return sorted(list(cidades))
 
 
 embarcadores_especiais = [
@@ -639,11 +646,6 @@ lista_ufs = list(estados_dict.keys())
 # Barra lateral
 st.sidebar.header("🔍 Parâmetros da Consulta")
 
-estados_dict = carregar_estados()
-lista_ufs = list(estados_dict.keys())
-
-st.sidebar.header("🔍 Parâmetros da Consulta")
-
 uf_origem = st.sidebar.selectbox(
     "UF de Coleta (Origem):",
     lista_ufs,
@@ -739,7 +741,6 @@ else:
       embarcador_selecionado,
   )
 
-  # Utilizando contentores para estabilizar a árvore DOM e evitar erros do React
   container_resultado = st.container()
 
   with container_resultado:
