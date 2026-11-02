@@ -2,6 +2,7 @@ import pandas as pd
 import streamlit as st
 
 # Configuração da Página
+st.image("imagens/tlog.jpeg", width=1000)
 st.set_page_config(
     page_title="Validador de LMG, GR e Mercadorias - TLOG / Sompo",
     page_icon="🛡️",
