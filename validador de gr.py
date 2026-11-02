@@ -644,6 +644,8 @@ estados_dict = carregar_estados()
 lista_ufs = list(estados_dict.keys())
 
 # Barra lateral
+st.sidebar.image("imagens/tlog.png", use_container_width=True)
+st.sidebar.markdown("---")
 st.sidebar.header("🔍 Parâmetros da Consulta")
 
 uf_origem = st.sidebar.selectbox(
