@@ -372,7 +372,7 @@ def obter_regras_gr(
             "consulta": "Sim",
             "monitoramento": "Sim",
             "isca": "Não exigido",
-            "escolta": "🚨 **PROIBIDO AUTÔNOMO** | Pernoite a cada 30 min",
+            "escolta": "Pernoite a cada 30 min",
         }
       elif valor_carga <= 6000000.00:
         return {
