@@ -384,7 +384,7 @@ def obter_regras_gr(
                 " Imobilizador"
             ),
             "escolta": (
-                "🚨 **PROIBIDO AUTÔNOMO** | Escolta Armada (ou opções da"
+                "| Escolta Armada (ou opções da"
                 " coluna anterior)"
             ),
         }
